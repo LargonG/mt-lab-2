@@ -4,7 +4,7 @@ import common.IdGen
 import parser.tree.Node.Companion.tab
 
 data class Branch<K, T>(
-    val value: K,
+    val key: K,
     val children: MutableList<Node<T>>
 ): Node<T> {
     var id: Int = -1
@@ -15,7 +15,7 @@ data class Branch<K, T>(
 
     override fun toFormatString(builder: StringBuilder, tabs: Int) {
         builder
-            .append(tab.repeat(tabs)).append("$value(\n")
+            .append(tab.repeat(tabs)).append("$key(\n")
         for (i in children.indices) {
             val child = children[i]
             child.toFormatString(builder, tabs + 1)
@@ -29,7 +29,7 @@ data class Branch<K, T>(
     }
 
     override fun toDot(builder: StringBuilder, idGen: IdGen) {
-        builder.append(name(idGen)).append("[label=$value]\n")
+        builder.append(name(idGen)).append("[label=$key]\n")
         for (child in children) {
             builder.append(name(idGen)).append(" -> ").append(child.name(idGen)).append("\n")
         }
@@ -42,6 +42,6 @@ data class Branch<K, T>(
         if (id == -1) {
             id = idGen.next()
         }
-        return "$value$id"
+        return "$key$id"
     }
 }
