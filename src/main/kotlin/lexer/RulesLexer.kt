@@ -4,28 +4,8 @@ import common.BufferedIterator
 import common.DefaultIterator
 
 class RulesLexer: Lexer<Char, RuleToken> {
-    override fun tokenize(input: BufferedIterator<Char>): BufferedIterator<RuleToken> {
-        val result = mutableListOf<RuleToken>()
-        while (input.hasNext()) {
-            val from = oneSymbol(input)
-            if (from == NewLine) {
-                continue
-            }
-            result.add(from)
-            result.add(arrow(input))
-            var next = oneSymbol(input)
-            while (next != NewLine && input.hasNext()) {
-                result.add(next)
-                if (input.hasNext()) {
-                    next = oneSymbol(input)
-                }
-            }
-            result.add(next)
-        }
-
-        return DefaultIterator(result.iterator())
-    }
-
+    override fun tokenize(input: BufferedIterator<Char>): BufferedIterator<RuleToken> =
+        DefaultIterator(getAllTokens(input).iterator())
 
     private fun oneSymbol(it: BufferedIterator<Char>): RuleToken {
         return when(val symbol = skipSpace(it)) {
@@ -60,6 +40,30 @@ class RulesLexer: Lexer<Char, RuleToken> {
             symbol = it.next()
         }
         return if (symbol == ' ') Char(0) else symbol
+    }
+
+    override fun getToken(input: BufferedIterator<Char>): RuleToken = oneSymbol(input)
+
+    override fun getAllTokens(input: BufferedIterator<Char>): List<RuleToken> {
+        val result = mutableListOf<RuleToken>()
+        while (input.hasNext()) {
+            val from = oneSymbol(input)
+            if (from == NewLine) {
+                continue
+            }
+            result.add(from)
+            result.add(arrow(input))
+            var next = oneSymbol(input)
+            while (next != NewLine && input.hasNext()) {
+                result.add(next)
+                if (input.hasNext()) {
+                    next = oneSymbol(input)
+                }
+            }
+            result.add(next)
+        }
+
+        return result
     }
 
 }

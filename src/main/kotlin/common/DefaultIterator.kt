@@ -4,7 +4,7 @@ class DefaultIterator<T>(val iterator: Iterator<T>): BufferedIterator<T> {
     var actual: T? = null
 
     override fun next(): T {
-        return if (actual == null) {
+        return if (actual === null) {
             iterator.next()
         } else {
             val value = actual
@@ -14,14 +14,14 @@ class DefaultIterator<T>(val iterator: Iterator<T>): BufferedIterator<T> {
     }
 
     override fun hasNext(): Boolean {
-        if (actual == null) {
+        if (actual === null) {
             return iterator.hasNext()
         }
         return true
     }
 
     override fun look(): T {
-        if (actual == null) {
+        if (actual === null) {
             actual = iterator.next()
         }
         return actual ?: throw NoSuchElementException()

@@ -1,51 +1,109 @@
 package lexer
 
 import common.BufferedIterator
-import common.DefaultIterator
 import java.math.BigInteger
 
 class ArithmeticsLexer: Lexer<Char, ArithmeticsToken> {
-    override fun tokenize(input: BufferedIterator<Char>): BufferedIterator<ArithmeticsToken> {
-        val result: MutableList<ArithmeticsToken> = mutableListOf()
-        while (input.hasNext()) {
-            result.add(when (val symbol = skipSpace(input)) {
-                '+' -> {
-                    input.next()
-                    Plus
-                }
-                '-' -> {
-                    input.next()
-                    Minus
-                }
-                '*' -> {
-                    input.next()
-                    Multiply
-                }
-                '(' -> {
-                    input.next()
-                    Open
-                }
-                ')' -> {
-                    input.next()
-                    Close
-                }
-                0.toChar() -> {
-                    continue
-                }
-                else -> {
-                    if (symbol.isDigit()) {
-                        number(input)
-                    } else if (symbol.isLetter()) {
-                        function(input)
+    companion object {
+        private class LexerIterator(
+            val lexer: ArithmeticsLexer,
+            val input: BufferedIterator<Char>
+            ): BufferedIterator<ArithmeticsToken> {
+
+            var token: ArithmeticsToken? = null
+            var endLine: Boolean = false
+
+            override fun next(): ArithmeticsToken {
+                return if (token === null) {
+                    if (lexer.hasNextSymbol(input)) {
+                        lexer.getToken(input)
+                    } else if (!endLine) {
+                        endLine = true
+                        EndLine
                     } else {
-                        throw IllegalStateException()
+                        throw NoSuchElementException()
+                    }
+                } else {
+                    val result = token
+                    token = null
+                    result ?: throw NoSuchElementException()
+                }
+            }
+
+            override fun hasNext(): Boolean {
+                return if (token === null) {
+                    if (lexer.hasNextSymbol(input)) {
+                        true
+                    } else {
+                        !endLine
+                    }
+                } else {
+                    true
+                }
+            }
+
+            override fun look(): ArithmeticsToken {
+                if (token === null) {
+                    if (lexer.hasNextSymbol(input)) {
+                        token = lexer.getToken(input)
+                    } else if (!endLine) {
+                        endLine = true
+                        token = EndLine
                     }
                 }
-            })
+                return token ?: throw NoSuchElementException()
+            }
+
+        }
+    }
+
+    override fun tokenize(input: BufferedIterator<Char>): BufferedIterator<ArithmeticsToken> =
+        LexerIterator(this, input)
+
+    override fun getToken(input: BufferedIterator<Char>): ArithmeticsToken {
+        if (!hasNextSymbol(input)) {
+            throw NoSuchElementException()
+        }
+        return when (val symbol = skipSpace(input)) {
+            '+' -> {
+                input.next()
+                Plus
+            }
+            '-' -> {
+                input.next()
+                Minus
+            }
+            '*' -> {
+                input.next()
+                Multiply
+            }
+            '(' -> {
+                input.next()
+                Open
+            }
+            ')' -> {
+                input.next()
+                Close
+            }
+            else -> {
+                if (symbol.isDigit()) {
+                    number(input)
+                } else if (symbol.isLetter()) {
+                    function(input)
+                } else {
+                    throw IllegalStateException()
+                }
+            }
+        }
+    }
+
+    override fun getAllTokens(input: BufferedIterator<Char>): List<ArithmeticsToken> {
+        val result = mutableListOf<ArithmeticsToken>()
+        while (hasNextSymbol(input)) {
+            result.add(getToken(input))
         }
         result.add(EndLine)
-
-        return DefaultIterator(result.iterator())
+        return result
     }
 
     private fun number(it: BufferedIterator<Char>): ArithmeticsToken {
@@ -75,6 +133,23 @@ class ArithmeticsLexer: Lexer<Char, ArithmeticsToken> {
             }
         }
         return res
+    }
+
+    private fun hasNextSymbol(it: BufferedIterator<Char>): Boolean {
+        if (!it.hasNext()) {
+            return false
+        }
+
+        var symbol = it.look()
+        while (symbol.isWhitespace()) {
+            it.next()
+            if (it.hasNext()) {
+                symbol = it.look()
+            } else {
+                break
+            }
+        }
+        return !symbol.isWhitespace()
     }
 }
 
