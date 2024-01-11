@@ -15,6 +15,7 @@ class ArithmeticsParser: Parser<ArithmeticsToken, Node<ArithmeticsToken>> {
         private data object ExprContinuous: Rule // R
         private data object MulContinuous: Rule // Y
         private data object Atom: Rule // F
+        private data object Arguments: Rule // W
         private data object ExprNext: Rule // K
     }
 
@@ -104,7 +105,7 @@ class ArithmeticsParser: Parser<ArithmeticsToken, Node<ArithmeticsToken>> {
         F -> -F
         F -> n
         F -> (E)
-        F -> f(EK)
+        F -> fW
          */
         val node = Branch<Rule, ArithmeticsToken>(Atom, mutableListOf())
         return when (val token = it.look()) {
@@ -123,16 +124,7 @@ class ArithmeticsParser: Parser<ArithmeticsToken, Node<ArithmeticsToken>> {
                 node.addChild(Leaf(token))
                 it.next()
 
-                val openBracket = it.next()
-                assert(openBracket == Open)
-                node.addChild(Leaf(openBracket))
-
-                node.addChild(ruleE(it))
-                node.addChild(ruleK(it))
-
-                val closeBracket = it.next()
-                assert(closeBracket == Close)
-                node.addChild(Leaf(closeBracket))
+                node.addChild(ruleW(it))
 
                 node
             }
@@ -146,6 +138,33 @@ class ArithmeticsParser: Parser<ArithmeticsToken, Node<ArithmeticsToken>> {
                 assert(closeBracket == Close)
                 node.addChild(Leaf(closeBracket))
 
+                node
+            }
+            else -> throw AssertionError(createErrorMessage(token))
+        }
+    }
+
+    private fun ruleW(it: BufferedIterator<ArithmeticsToken>): Node<ArithmeticsToken> {
+        /*
+        W -> (EK)
+        W ->
+         */
+        val node = Branch<Rule, ArithmeticsToken>(Arguments, mutableListOf())
+        return when(val token = it.look()) {
+            Open -> {
+                node.addChild(Leaf(token))
+                it.next()
+
+                node.addChild(ruleE(it))
+                node.addChild(ruleK(it))
+
+                val close = it.next()
+                assert(close == Close)
+                node.addChild(Leaf(close))
+
+                node
+            }
+            Multiply, Plus, Minus, EndLine, Close, NextArgument -> {
                 node
             }
             else -> throw AssertionError(createErrorMessage(token))

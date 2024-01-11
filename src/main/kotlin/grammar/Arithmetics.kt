@@ -84,7 +84,10 @@ data class Const(val value: BigInteger): Arithmetics {
 }
 data class Function(val name: String, val exprs: List<Arithmetics>): Arithmetics {
     override fun toSuffixString(builder: StringBuilder, before: Int) {
-        builder.append(name).append("(")
+        builder.append(name)
+        if (exprs.isNotEmpty()) {
+            builder.append("(")
+        }
         for (i in exprs.indices) {
             val expr = exprs[i]
             expr.toSuffixString(builder, 0)
@@ -92,6 +95,8 @@ data class Function(val name: String, val exprs: List<Arithmetics>): Arithmetics
                 builder.append(", ")
             }
         }
-        builder.append(")")
+        if (exprs.isNotEmpty()) {
+            builder.append(")")
+        }
     }
 }

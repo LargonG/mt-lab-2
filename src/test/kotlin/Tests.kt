@@ -42,9 +42,13 @@ class Tests {
         "2353  + 546 * iytrewr(1 * 5346 + 56456, 2 + -2453 * 457)", // функция с множеством аргументов с выражениями
         "hello(my(dear(4324565, 45, 6546, 124345 ), world(349, 354)), welcome(356), to(456, 23), the(chat(5467)))", // функция от функции от функции от функции ....
         "hello(my(dear(4324565,         sin(2345),         6546        , 124345 ), world(      349, 354      )), welcome(          356           ), to(             456                   ,        23           ), the(chat(    5467    , 5646854   )))", // пробелы, табы в функциях от нескольких переменных
+        "zero", // нуль арная функция
+        "variable + x + y - z * t", // переменные
+        "someOtherFunction(hello + 5, y - x, 1 * 2 + 6 - 7)", // функция от нескольких переменных
+        "zero + one(5) + two(3, sin(x))" // много функций
     )
 
-    private val iterations = 10
+    private val iterations = 100
 
     private val charPool = ('a'..'z') + ('A'..'Z')
 
@@ -89,7 +93,7 @@ class Tests {
             5 -> Function(randomString(3, random),
                 generateRandomList(
                     depth - 1,
-                    random.nextInt().absoluteValue % 5 + 1,
+                    random.nextInt().absoluteValue % 6,
                     random))
             else -> throw IllegalStateException("value = $key")
         }
