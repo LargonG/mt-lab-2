@@ -1,9 +1,13 @@
-import common.SimpleIdGen
 import common.DefaultIterator
+import common.SimpleIdGen
+import guru.nidi.graphviz.engine.Format
+import guru.nidi.graphviz.engine.Graphviz
 import lexer.ArithmeticsLexer
+import lexer.ArithmeticsToken
 import lexer.RulesLexer
 import parser.ArithmeticsParser
 import parser.RulesParser
+import parser.tree.Node
 import java.nio.file.Files
 import kotlin.io.path.Path
 
@@ -20,7 +24,9 @@ fun main() {
             F -> -F
             F -> n
             F -> (E)
-            F -> f(E)
+            F -> f(EK)
+            K -> ,EK
+            K -> 
     """.trimMargin()
 
     val lexer = RulesLexer()
@@ -36,7 +42,7 @@ fun main() {
     println(if (isLL1Grammar(rules)) "G is LL1" else "G is not LL1")
 
     val arithmetics = """
-        (1+2)*sin(-3*(7-4)+2)+50-10*5
+        f(4 + 5 * 6 - 83459, 5 * 10 * sin(245 + 5))
     """.trimIndent()
 
     val arithmeticsLexer = ArithmeticsLexer()
@@ -45,6 +51,20 @@ fun main() {
     val arithmeticsParser = ArithmeticsParser()
     val res = arithmeticsParser.parse(arithmeticTokens)
 
-    val path = Path("out.txt")
-    Files.writeString(path, res.toDot(SimpleIdGen()))
+    Util.saveToFile("out", "out", res, "// $arithmetics\n")
+}
+
+object Util {
+    fun saveToFile(
+        dir: String, name: String,
+        node: Node<ArithmeticsToken>,
+        addition: String = ""
+    ) {
+        val path = Path("$dir/$name.txt")
+        Files.writeString(path, addition + node.toDot(SimpleIdGen()))
+        Graphviz
+            .fromFile(path.toFile())
+            .render(Format.SVG)
+            .toFile(Path("$dir/$name.svg").toFile())
+    }
 }

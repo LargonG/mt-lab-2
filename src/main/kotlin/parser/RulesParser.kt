@@ -13,6 +13,7 @@ class RulesParser: Parser<RuleToken, List<Rule>> {
     companion object {
         private val digitRegex = Regex("([1-9][0-9]*|0)")
         private val functionRegex = Regex("[a-zA-Z]+")
+        private val coma = Regex(",")
     }
 
     override fun parse(tokens: BufferedIterator<RuleToken>): List<Rule> {
@@ -28,6 +29,7 @@ class RulesParser: Parser<RuleToken, List<Rule>> {
             while (atom != NewLine) {
                 atoms.add(when(atom) {
                     WordToken -> RegexTerm(functionRegex)
+                    Coma -> RegexTerm(coma)
                     is NonTerm -> State(atom.name)
                     DigitToken -> RegexTerm(digitRegex)
                     is Term -> StringTerm(atom.value)

@@ -1,7 +1,6 @@
 package parser.tree
 
 import common.IdGen
-import parser.ArithmeticsParser
 import parser.tree.Node.Companion.tab
 
 data class Leaf<T>(val value: T): Node<T> {

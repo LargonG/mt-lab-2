@@ -11,6 +11,7 @@ class RulesLexer: Lexer<Char, RuleToken> {
         return when(val symbol = skipSpace(it)) {
             'n' -> DigitToken
             'f' -> WordToken
+            ',' -> Coma
             '\n' -> NewLine
             Char(0) -> NewLine
             else -> {
@@ -72,6 +73,7 @@ sealed interface RuleToken
 
 data object DigitToken: RuleToken
 data object WordToken: RuleToken
+data object Coma: RuleToken
 data object ArrowToken: RuleToken
 data object NewLine: RuleToken
 data class Term(val value: String): RuleToken

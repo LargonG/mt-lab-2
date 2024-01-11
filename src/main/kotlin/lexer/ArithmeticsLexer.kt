@@ -77,6 +77,10 @@ class ArithmeticsLexer: Lexer<Char, ArithmeticsToken> {
                 input.next()
                 Multiply
             }
+            ',' -> {
+                input.next()
+                NextArgument
+            }
             '(' -> {
                 input.next()
                 Open
@@ -167,3 +171,4 @@ data class Name(val value: String): ArithmeticsToken {
 data object Open: ArithmeticsToken
 data object Close: ArithmeticsToken
 data object EndLine: ArithmeticsToken
+data object NextArgument: ArithmeticsToken

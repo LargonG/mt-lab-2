@@ -1,13 +1,8 @@
 package parser
 
 import common.BufferedIterator
-import common.IdGen
 import lexer.*
-import lexer.Name
-import lexer.Minus
-import lexer.Multiply
 import lexer.Number
-import lexer.Plus
 import parser.tree.Branch
 import parser.tree.Leaf
 import parser.tree.Node
@@ -15,12 +10,16 @@ import parser.tree.Node
 class ArithmeticsParser: Parser<ArithmeticsToken, Node<ArithmeticsToken>> {
     companion object {
         private sealed interface Rule
-        private data object Expr: Rule // E
+        private data object Expr : Rule // E
         private data object Mul: Rule // T
         private data object ExprContinuous: Rule // R
         private data object MulContinuous: Rule // Y
         private data object Atom: Rule // F
+        private data object ExprNext: Rule // K
     }
+
+    private fun createErrorMessage(token: ArithmeticsToken) =
+        "unexpected token: $token"
 
     override fun parse(tokens: BufferedIterator<ArithmeticsToken>): Node<ArithmeticsToken> =
         ruleE(tokens)
@@ -36,7 +35,7 @@ class ArithmeticsParser: Parser<ArithmeticsToken, Node<ArithmeticsToken>> {
                 node.addChild(ruleR(it))
                 node
             }
-            else -> throw AssertionError()
+            else -> throw AssertionError(createErrorMessage(token))
         }
     }
 
@@ -51,7 +50,7 @@ class ArithmeticsParser: Parser<ArithmeticsToken, Node<ArithmeticsToken>> {
                 node.addChild(ruleY(it))
                 node
             }
-            else -> throw AssertionError()
+            else -> throw AssertionError(createErrorMessage(token))
         }
     }
 
@@ -70,10 +69,10 @@ class ArithmeticsParser: Parser<ArithmeticsToken, Node<ArithmeticsToken>> {
                 node.addChild(ruleR(it))
                 node
             }
-            Close, EndLine -> {
+            Close, EndLine, NextArgument -> {
                 node
             }
-            else -> throw AssertionError()
+            else -> throw AssertionError(createErrorMessage(token))
         }
     }
 
@@ -93,10 +92,10 @@ class ArithmeticsParser: Parser<ArithmeticsToken, Node<ArithmeticsToken>> {
 
                 node
             }
-            Plus, Minus, EndLine, Close -> {
+            Plus, Minus, EndLine, Close, NextArgument -> {
                 node
             }
-            else -> throw AssertionError()
+            else -> throw AssertionError(createErrorMessage(token))
         }
     }
 
@@ -105,7 +104,7 @@ class ArithmeticsParser: Parser<ArithmeticsToken, Node<ArithmeticsToken>> {
         F -> -F
         F -> n
         F -> (E)
-        F -> f(E)
+        F -> f(EK)
          */
         val node = Branch<Rule, ArithmeticsToken>(Atom, mutableListOf())
         return when (val token = it.look()) {
@@ -129,6 +128,7 @@ class ArithmeticsParser: Parser<ArithmeticsToken, Node<ArithmeticsToken>> {
                 node.addChild(Leaf(openBracket))
 
                 node.addChild(ruleE(it))
+                node.addChild(ruleK(it))
 
                 val closeBracket = it.next()
                 assert(closeBracket == Close)
@@ -148,7 +148,31 @@ class ArithmeticsParser: Parser<ArithmeticsToken, Node<ArithmeticsToken>> {
 
                 node
             }
-            else -> throw AssertionError()
+            else -> throw AssertionError(createErrorMessage(token))
         }
+    }
+
+    private fun ruleK(it: BufferedIterator<ArithmeticsToken>): Node<ArithmeticsToken> {
+        /*
+        K -> ,EK
+        K ->
+         */
+        val node = Branch<Rule, ArithmeticsToken>(ExprNext, mutableListOf())
+        return when(val token = it.look()) {
+            NextArgument -> {
+                node.addChild(Leaf(token))
+                it.next()
+
+                node.addChild(ruleE(it))
+                node.addChild(ruleK(it))
+
+                node
+            }
+            Close -> {
+                node
+            }
+            else -> throw AssertionError(createErrorMessage(token))
+        }
+
     }
 }

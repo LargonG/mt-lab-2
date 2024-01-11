@@ -1,5 +1,3 @@
-import kotlin.collections.HashMap
-
 interface Atom
 
 interface Term: Atom
