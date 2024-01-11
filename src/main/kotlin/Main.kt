@@ -25,8 +25,10 @@ fun main() {
             F -> n
             F -> (E)
             F -> fW
-            W -> (EK)
+            W -> (M)
             W -> 
+            M -> EK
+            M -> 
             K -> ,EK
             K -> 
     """.trimMargin()
@@ -44,7 +46,7 @@ fun main() {
     println(if (isLL1Grammar(rules)) "G is LL1" else "G is not LL1")
 
     val arithmetics = """
-        f(4 + 5 * 6 - 83459, 5 * 10 * sin(245 + 5, x, hello))
+        f(4 + 5 * 6 - 83459, 5 * 10 * sin(245 + 5, x, hello(), k))
     """.trimIndent()
 
     val arithmeticsLexer = ArithmeticsLexer()

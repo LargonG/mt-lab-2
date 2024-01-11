@@ -45,7 +45,10 @@ class Tests {
         "zero", // нуль арная функция
         "variable + x + y - z * t", // переменные
         "someOtherFunction(hello + 5, y - x, 1 * 2 + 6 - 7)", // функция от нескольких переменных
-        "zero + one(5) + two(3, sin(x))" // много функций
+        "zero + one(5) + two(3, sin(x))", // много функций
+        "f()",
+        "g() + 5",
+        "g() + y(123) - u(r))"
     )
 
     private val iterations = 100

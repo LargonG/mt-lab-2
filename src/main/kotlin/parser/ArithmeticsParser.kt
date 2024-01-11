@@ -15,7 +15,8 @@ class ArithmeticsParser: Parser<ArithmeticsToken, Node<ArithmeticsToken>> {
         private data object ExprContinuous: Rule // R
         private data object MulContinuous: Rule // Y
         private data object Atom: Rule // F
-        private data object Arguments: Rule // W
+        private data object Brackets: Rule // W
+        private data object Arguments: Rule // M
         private data object ExprNext: Rule // K
     }
 
@@ -146,17 +147,16 @@ class ArithmeticsParser: Parser<ArithmeticsToken, Node<ArithmeticsToken>> {
 
     private fun ruleW(it: BufferedIterator<ArithmeticsToken>): Node<ArithmeticsToken> {
         /*
-        W -> (EK)
+        W -> (M)
         W ->
          */
-        val node = Branch<Rule, ArithmeticsToken>(Arguments, mutableListOf())
+        val node = Branch<Rule, ArithmeticsToken>(Brackets, mutableListOf())
         return when(val token = it.look()) {
             Open -> {
                 node.addChild(Leaf(token))
                 it.next()
 
-                node.addChild(ruleE(it))
-                node.addChild(ruleK(it))
+                node.addChild(ruleM(it))
 
                 val close = it.next()
                 assert(close == Close)
@@ -165,6 +165,27 @@ class ArithmeticsParser: Parser<ArithmeticsToken, Node<ArithmeticsToken>> {
                 node
             }
             Multiply, Plus, Minus, EndLine, Close, NextArgument -> {
+                node
+            }
+            else -> throw AssertionError(createErrorMessage(token))
+        }
+    }
+
+    private fun ruleM(it: BufferedIterator<ArithmeticsToken>): Node<ArithmeticsToken> {
+        /*
+        M -> EK
+        M ->
+         */
+        val node = Branch<Rule, ArithmeticsToken>(Arguments, mutableListOf())
+        return when(val token = it.look()) {
+            Minus, is Number, Open, is Name -> {
+
+                node.addChild(ruleE(it))
+                node.addChild(ruleK(it))
+
+                node
+            }
+            Close -> {
                 node
             }
             else -> throw AssertionError(createErrorMessage(token))
